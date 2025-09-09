@@ -1,0 +1,1216 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Macros & TDEE Calculator</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+
+    <style>
+        :root {
+            --bg: #0b0f14;
+            --card: rgba(20, 25, 34, 0.8);
+            --muted: #9fb0c3;
+            --accent: #66e0c2;
+            --accent-2: #7aa6ff;
+            --ring: rgba(102, 224, 194, 0.6);
+            --text: #e9f0f6;
+            --text-strong: #ffffff;
+            --border: rgba(255, 255, 255, 0.08);
+            --field: rgba(255, 255, 255, 0.04);
+            --field-focus: rgba(255, 255, 255, 0.06);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            --divider: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="light"] {
+            --bg: #f6fafb;
+            --card: rgba(255, 255, 255, 0.9);
+            --muted: #5b6b7b;
+            --accent: #08b387;
+            --accent-2: #3b6cff;
+            --ring: rgba(8, 179, 135, 0.25);
+            --text: #1c2430;
+            --text-strong: #0b0f14;
+            --border: rgba(0, 0, 0, 0.09);
+            --field: rgba(0, 0, 0, 0.03);
+            --field-focus: rgba(0, 0, 0, 0.05);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --divider: rgba(0, 0, 0, 0.12);
+        }
+
+        html,
+        body {
+            background:
+                radial-gradient(1200px 600px at 15% 20%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
+                radial-gradient(1000px 600px at 85% 0%, color-mix(in srgb, var(--accent-2) 12%, transparent), transparent 60%),
+                var(--bg);
+            min-height: 100%;
+            color: var(--text);
+        }
+
+        .brand {
+            letter-spacing: .5px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+        }
+
+        .glass {
+            background: var(--card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            border-radius: 20px;
+        }
+
+        .control-label {
+            font-weight: 600;
+            color: var(--text-strong);
+        }
+
+        .form-control,
+        .form-select,
+        .form-range {
+            background: var(--field);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 12px;
+        }
+
+        .form-range {
+            border: none;
+            background: transparent;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            box-shadow: 0 0 0 .2rem var(--ring);
+            border-color: transparent;
+            background: var(--field-focus);
+            color: var(--text-strong);
+        }
+
+        .btn-toggle .btn,
+        .btn-tab {
+            border-radius: 12px;
+            background: var(--field);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-toggle .btn.active,
+        .btn-tab.active {
+            background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 25%, transparent), color-mix(in srgb, var(--accent-2) 25%, transparent));
+            border-color: color-mix(in srgb, var(--text) 20%, transparent);
+            color: var(--text-strong);
+        }
+
+        .helper {
+            font-size: .85rem;
+            color: var(--muted);
+        }
+
+        .pill {
+            font-size: .8rem;
+            padding: .35rem .6rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            color: color-mix(in srgb, var(--text) 86%, transparent);
+        }
+
+        .number-big {
+            font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: .5px;
+            color: var(--text-strong);
+        }
+
+        .metric {
+            color: var(--muted);
+            font-weight: 600;
+            font-size: .9rem;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--divider), transparent);
+            margin: 1rem 0;
+        }
+
+        .small-note {
+            color: var(--muted);
+            font-size: .9rem;
+        }
+
+        .list-unstyled li::marker {
+            content: "";
+        }
+
+        .card-hero {
+            border-radius: 20px;
+            background:
+                radial-gradient(600px 300px at 80% -10%, color-mix(in srgb, var(--accent-2) 15%, transparent), transparent 60%),
+                radial-gradient(500px 280px at 0% 100%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
+                var(--card);
+            border: 1px solid var(--border);
+        }
+
+        .footer-note {
+            color: color-mix(in srgb, var(--text) 70%, transparent);
+            font-size: .85rem;
+        }
+
+        /* Top-right toolbar */
+        .toolbar {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 9999;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .toolbar .btn {
+            border-radius: 12px !important;
+            padding: .45rem .65rem;
+            border: 1px solid var(--border) !important;
+            background: var(--card) !important;
+            color: var(--text) !important;
+            line-height: 1;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-theme {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Tabs header */
+        .tabs {
+            display: inline-flex;
+            gap: .5rem;
+            background: var(--field);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: .25rem;
+        }
+
+        .btn-tab {
+            padding: .35rem .7rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Comparison table */
+        .table-compare {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            overflow: hidden;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+        }
+
+        .table-compare th,
+        .table-compare td {
+            padding: .6rem .8rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-compare thead th {
+            background: var(--field);
+            color: var(--text-strong);
+            font-weight: 700;
+        }
+
+        .table-compare tbody tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top-right Controls -->
+    <div class="toolbar">
+        <div class="btn-group" role="group" aria-label="Language">
+            <button class="btn btn-sm" id="langEN" aria-pressed="true">🇬🇧 EN</button>
+            <button class="btn btn-sm" id="langBG">🇧🇬 BG</button>
+        </div>
+        <button class="btn btn-sm btn-theme" id="themeToggle" title="Toggle theme">🌙</button>
+    </div>
+
+    <div class="container py-5">
+        <header class="mb-4 text-center">
+            <div class="pill d-inline-block mb-2" data-i18n="tagline">Nutrition • Energy • Fitness</div>
+            <h1 class="display-6 fw-bold mb-2">
+                <span class="brand" data-i18n="titleBrand">Macros & TDEE</span>
+                <span data-i18n="titleCalc">Calculator</span>
+            </h1>
+            <p class="small-note mx-auto" style="max-width: 740px;" data-i18n="subtitle">
+                Uses <strong>Mifflin–St Jeor</strong> and <strong>Harris–Benedict (1984)</strong> for BMR,
+                then multiplies by your activity to estimate <abbr title="Total Daily Energy Expenditure">TDEE</abbr>.
+            </p>
+        </header>
+
+        <div class="row g-4">
+            <!-- Inputs -->
+            <div class="col-lg-6">
+                <div class="glass p-4 h-100">
+                    <h2 class="h5 mb-3" data-i18n="yourDetails">Your details</h2>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="control-label d-block mb-2" data-i18n="gender">Gender</label>
+                            <div class="btn-toggle btn-group" role="group" aria-label="Gender">
+                                <input type="radio" class="btn-check" name="gender" id="gender_f" value="female"
+                                    checked>
+                                <label class="btn" for="gender_f" data-i18n="female">Female</label>
+
+                                <input type="radio" class="btn-check" name="gender" id="gender_m" value="male">
+                                <label class="btn" for="gender_m" data-i18n="male">Male</label>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label for="age" class="control-label mb-2" data-i18n="age">Age</label>
+                            <input type="number" inputmode="numeric" min="10" max="100" step="1" class="form-control"
+                                id="age" value="30" />
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label class="control-label mb-2 d-flex align-items-center justify-content-between">
+                                <span data-i18n="activity">Activity level</span>
+                            </label>
+                            <select id="activity" class="form-select">
+                                <option value="1.2" data-i18n-opt="sedentary">Sedentary ×1.2</option>
+                                <option value="1.375" selected data-i18n-opt="light">Lightly active ×1.375</option>
+                                <option value="1.55" data-i18n-opt="moderate">Moderately active ×1.55</option>
+                                <option value="1.725" data-i18n-opt="active">Active ×1.725</option>
+                                <option value="1.9" data-i18n-opt="veryActive">Very active ×1.9</option>
+                            </select>
+                        </div>
+
+                        <!-- Goal & percentage -->
+                        <div class="col-12">
+                            <div class="divider"></div>
+                        </div>
+
+                        <div class="col-md-7">
+                            <label class="control-label d-block mb-2" data-i18n="goal">Goal</label>
+                            <div class="btn-toggle btn-group" role="group" aria-label="Goal">
+                                <input type="radio" class="btn-check" name="goal" id="g_maintain" value="maintain"
+                                    checked>
+                                <label class="btn" for="g_maintain" data-i18n="goalMaintain">Maintain</label>
+
+                                <input type="radio" class="btn-check" name="goal" id="g_cut" value="cut">
+                                <label class="btn" for="g_cut" data-i18n="goalCut">Cut</label>
+
+                                <input type="radio" class="btn-check" name="goal" id="g_bulk" value="bulk">
+                                <label class="btn" for="g_bulk" data-i18n="goalBulk">Bulk</label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-5" id="goalPctWrap" style="display:none;">
+                            <label class="control-label mb-2" for="goalPct" data-i18n="goalPct">Goal percentage</label>
+                            <div class="input-group">
+                                <input type="number" id="goalPct" class="form-control" min="1" max="50" step="1"
+                                    value="10">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <div class="helper" id="goalHelp">Cut/Bulk by % of TDEE</div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="divider"></div>
+                        </div>
+
+                        <!-- Height -->
+                        <div class="col-md-7">
+                            <label for="height" class="control-label mb-2" data-i18n="height">Height</label>
+                            <input type="number" id="height" class="form-control" step="0.1" min="50" value="170" />
+                            <div class="d-flex align-items-center gap-2 mt-2">
+                                <div class="btn-toggle btn-group" role="group" aria-label="Height unit">
+                                    <input type="radio" class="btn-check" name="unitHeight" id="h_cm" value="cm"
+                                        checked>
+                                    <label class="btn" for="h_cm">cm</label>
+
+                                    <input type="radio" class="btn-check" name="unitHeight" id="h_ft" value="ft">
+                                    <label class="btn" for="h_ft">ft</label>
+                                </div>
+                                <span class="helper" id="heightHelper">Tip: 170 cm</span>
+                            </div>
+
+                            <div id="ftHelperRow" class="row gx-2 mt-2" style="display:none;">
+                                <div class="col-6">
+                                    <input type="number" class="form-control" id="feetInput"
+                                        placeholder="Feet (e.g., 5)" min="3" step="1">
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" class="form-control" id="inchInput"
+                                        placeholder="Inches (e.g., 8)" min="0" step="1">
+                                </div>
+                                <div class="col-12">
+                                    <div class="helper mt-1" data-i18n="ftHelperNote">Enter feet & inches (optional).
+                                        We'll convert to decimal feet for the height field.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weight -->
+                        <div class="col-md-5">
+                            <label for="weight" class="control-label mb-2" data-i18n="weight">Weight</label>
+                            <input type="number" id="weight" class="form-control" step="0.1" min="30" value="65" />
+                            <div class="d-flex align-items-center gap-2 mt-2">
+                                <div class="btn-toggle btn-group" role="group" aria-label="Weight unit">
+                                    <input type="radio" class="btn-check" name="unitWeight" id="w_kg" value="kg"
+                                        checked>
+                                    <label class="btn" for="w_kg">kg</label>
+
+                                    <input type="radio" class="btn-check" name="unitWeight" id="w_lb" value="lb">
+                                    <label class="btn" for="w_lb">lb</label>
+                                </div>
+                                <span class="helper" id="weightHelper">Tip: 65 kg</span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 d-flex gap-2 mt-2">
+                            <button class="btn btn-light" id="resetBtn" data-i18n="reset">Reset</button>
+                            <button class="btn btn-outline-light" id="copyBtn" data-i18n="copy">Copy results</button>
+                        </div>
+
+                        <div class="col-12">
+                            <p class="small-note mt-3 mb-0">
+                                <span data-i18n="needMath">Need the math?</span>
+                                <span class="link-muted" data-bs-toggle="collapse" data-bs-target="#formulaInfo"
+                                    aria-expanded="false" aria-controls="formulaInfo" data-i18n="showFormulas">Show
+                                    formulas</span>
+                            </p>
+                            <div class="collapse mt-2" id="formulaInfo">
+                                <div class="p-3 rounded"
+                                    style="background: var(--field); border:1px solid var(--border);">
+                                    <div class="small-note" id="formulaText"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="col-lg-6">
+                <div class="card-hero p-4 h-100">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <h2 class="h5 mb-0" data-i18n="results">Results</h2>
+
+                        <div class="tabs">
+                            <button class="btn-tab active" id="tabBasic" data-i18n="tabBasic">Basic</button>
+                            <button class="btn-tab" id="tabAdvanced" data-i18n="tabAdvanced">Advanced</button>
+                        </div>
+
+                        <span class="pill" id="summaryPill">Female • 170 cm • 65 kg • Lightly active</span>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- BASIC PANEL -->
+                    <div id="panelBasic">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="glass p-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="metric" data-i18n="msj">Mifflin–St Jeor</span>
+                                    </div>
+                                    <div class="number-big" id="msjBmr">-</div>
+                                    <div class="helper" data-i18n="bmrUnit">BMR (kcal/day)</div>
+                                    <div class="divider"></div>
+                                    <div class="number-big" id="msjTdee">-</div>
+                                    <div class="helper" data-i18n="tdeeUnit">TDEE (kcal/day)</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="glass p-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="metric" data-i18n="hb">Harris–Benedict '84</span>
+                                    </div>
+                                    <div class="number-big" id="hbBmr">-</div>
+                                    <div class="helper" data-i18n="bmrUnit">BMR (kcal/day)</div>
+                                    <div class="divider"></div>
+                                    <div class="number-big" id="hbTdee">-</div>
+                                    <div class="helper" data-i18n="tdeeUnit">TDEE (kcal/day)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="glass p-3 h-100">
+                                    <div class="metric mb-1" data-i18n="goalCals">Goal calories (from MSJ)</div>
+                                    <div class="number-big" id="goalCalories">-</div>
+                                    <div class="helper" id="goalDesc">Maintain</div>
+                                    <div class="divider"></div>
+                                    <div class="metric mb-2" data-i18n="quickMacros">Quick macros (TDEE)</div>
+                                    <ul class="list-unstyled small-note mb-0">
+                                        <li><strong data-i18n="protein">Protein</strong>: <span
+                                                id="macroProtein">-</span> <span data-i18n="gDay">g/day</span> <span
+                                                class="helper">(≈ 1.8 g/kg)</span></li>
+                                        <li><strong data-i18n="fat">Fat</strong>: <span id="macroFat">-</span> <span
+                                                data-i18n="gDay">g/day</span> <span class="helper">(≈ 25% kcals)</span>
+                                        </li>
+                                        <li><strong data-i18n="carbs">Carbs</strong>: <span id="macroCarbs">-</span>
+                                            <span data-i18n="gDay">g/day</span> <span class="helper"
+                                                data-i18n="carbsRest">(rest)</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="glass p-3 h-100">
+                                    <div class="metric mb-2" data-i18n="targets">Targets preview</div>
+                                    <div class="small-note"><span data-i18n="maintain">Maintain</span>: <span
+                                            id="maintainCal">-</span> kcal</div>
+                                    <div class="small-note"><span data-i18n="mildCut">Mild cut (-10%)</span>: <span
+                                            id="cut10">-</span> kcal</div>
+                                    <div class="small-note"><span data-i18n="mildBulk">Mild bulk (+10%)</span>: <span
+                                            id="bulk10">-</span> kcal</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ADVANCED PANEL -->
+                    <div id="panelAdvanced" style="display:none;">
+                        <div class="glass p-3 mb-3">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-6">
+                                    <label class="control-label mb-1" for="protMul" data-i18n="advProtLbl">Protein
+                                        (g/kg)</label>
+                                    <input type="range" class="form-range" id="protMul" min="1.8" max="2.2" step="0.1"
+                                        value="1.8">
+                                    <div class="helper"><span data-i18n="selected">Selected</span>: <span
+                                            id="protMulVal">1.8</span> g/kg</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="control-label mb-1" for="fatMul" data-i18n="advFatLbl">Fat
+                                        (g/kg)</label>
+                                    <input type="range" class="form-range" id="fatMul" min="0.9" max="1.3" step="0.1"
+                                        value="0.9">
+                                    <div class="helper"><span data-i18n="selected">Selected</span>: <span
+                                            id="fatMulVal">0.9</span> g/kg</div>
+                                </div>
+                            </div>
+                            <div class="divider"></div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="glass p-3 h-100">
+                                        <div class="metric mb-1" data-i18n="advProt">Protein</div>
+                                        <div class="number-big"><span id="advProtG">-</span> g</div>
+                                        <div class="helper"><span id="advProtKcal">-</span> kcal</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="glass p-3 h-100">
+                                        <div class="metric mb-1" data-i18n="advFat">Fat</div>
+                                        <div class="number-big"><span id="advFatG">-</span> g</div>
+                                        <div class="helper"><span id="advFatKcal">-</span> kcal</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="glass p-3 h-100">
+                                        <div class="metric mb-1" data-i18n="advCarb">Carbs</div>
+                                        <div class="number-big"><span id="advCarbG">-</span> g</div>
+                                        <div class="helper"><span id="advCarbKcal">-</span> kcal</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="divider"></div>
+                            <div class="small-note">
+                                <span data-i18n="advNote">
+                                    Carbs = (Daily calories − Protein kcal − Fat kcal) ÷ 4. Protein = 4 kcal/g, Fat = 9
+                                    kcal/g, Carbs = 4 kcal/g.
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="glass p-3">
+                            <div class="metric mb-1" data-i18n="advUses">Advanced uses: daily calories = MSJ TDEE</div>
+                            <div class="small-note"><span data-i18n="tdeeUnit">TDEE (kcal/day)</span>: <strong
+                                    id="advUsesTdee">-</strong></div>
+                            <div class="small-note"><span data-i18n="goalCalsShort">Goal cals</span>: <strong
+                                    id="advGoalCals">-</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- COMPARISON -->
+                    <div class="glass p-3">
+                        <div class="metric mb-2" data-i18n="compareTitle">Comparison: Basic vs Advanced (grams/day)
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table-compare">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="macro">Macro</th>
+                                        <th data-i18n="basic">Basic</th>
+                                        <th data-i18n="advanced">Advanced</th>
+                                        <th data-i18n="diff">Δ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td data-i18n="protein">Protein</td>
+                                        <td id="cmpProtBasic">-</td>
+                                        <td id="cmpProtAdv">-</td>
+                                        <td id="cmpProtDelta">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td data-i18n="fat">Fat</td>
+                                        <td id="cmpFatBasic">-</td>
+                                        <td id="cmpFatAdv">-</td>
+                                        <td id="cmpFatDelta">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td data-i18n="carbs">Carbs</td>
+                                        <td id="cmpCarbBasic">-</td>
+                                        <td id="cmpCarbAdv">-</td>
+                                        <td id="cmpCarbDelta">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <p class="footer-note mt-3 mb-0" data-i18n="liveNote">Figures update live as you type. Units are
+                        fully switchable (cm/ft, kg/lb).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+
+    <script>
+        (function () {
+            // i18n dictionary
+            const i18n = {
+                en: {
+                    tagline: "Nutrition • Energy • Fitness",
+                    titleBrand: "Macros & TDEE",
+                    titleCalc: "Calculator",
+                    subtitle: `Uses <strong>Mifflin–St Jeor</strong> and <strong>Harris–Benedict (1984)</strong> for BMR,
+            then multiplies by your activity to estimate <abbr title="Total Daily Energy Expenditure">TDEE</abbr>.`,
+                    yourDetails: "Your details",
+                    gender: "Gender",
+                    female: "Female",
+                    male: "Male",
+                    age: "Age",
+                    activity: "Activity level",
+                    sedentary: "Sedentary ×1.2",
+                    light: "Lightly active ×1.375",
+                    moderate: "Moderately active ×1.55",
+                    active: "Active ×1.725",
+                    veryActive: "Very active ×1.9",
+                    goal: "Goal",
+                    goalMaintain: "Maintain",
+                    goalCut: "Cut",
+                    goalBulk: "Bulk",
+                    goalPct: "Goal percentage",
+                    goalDescMaintain: "Maintain (no change)",
+                    goalDescCut: "Cut by {pct}%",
+                    goalDescBulk: "Bulk by {pct}%",
+                    goalHelp: "Cut/Bulk by % of TDEE",
+                    height: "Height",
+                    weight: "Weight",
+                    ftHelperNote: "Enter feet & inches (optional). We'll convert to decimal feet for the height field.",
+                    reset: "Reset",
+                    copy: "Copy results",
+                    needMath: "Need the math?",
+                    showFormulas: "Show formulas",
+                    results: "Results",
+                    tabBasic: "Basic",
+                    tabAdvanced: "Advanced",
+                    msj: "Mifflin–St Jeor",
+                    hb: "Harris–Benedict '84",
+                    bmrUnit: "BMR (kcal/day)",
+                    tdeeUnit: "TDEE (kcal/day)",
+                    quickMacros: "Quick macros (TDEE)",
+                    protein: "Protein",
+                    fat: "Fat",
+                    carbs: "Carbs",
+                    gDay: "g/day",
+                    carbsRest: "(rest)",
+                    targets: "Targets preview",
+                    maintain: "Maintain",
+                    mildCut: "Mild cut (-10%)",
+                    mildBulk: "Mild bulk (+10%)",
+                    goalCals: "Goal calories (from MSJ)",
+                    goalCalsShort: "Goal cals",
+                    liveNote: "Figures update live as you type. Units are fully switchable (cm/ft, kg/lb).",
+                    actMap: { "1.2": "Sedentary", "1.375": "Lightly active", "1.55": "Moderately active", "1.725": "Active", "1.9": "Very active" },
+                    formulaHTML: `
+            <strong>Mifflin–St Jeor</strong> — BMR:
+            <em>Female</em> = 10 × weight (kg) + 6.25 × height (cm) – 5 × age – 161.
+            <em>Male</em> = 10 × weight + 6.25 × height – 5 × age + 5.
+            TDEE = BMR × activity factor (1.2 / 1.375 / 1.55 / 1.725 / 1.9).
+            <br/><br/>
+            <strong>Harris–Benedict (1984)</strong> — BMR:
+            <em>Male</em> = 13.397 × weight (kg) + 4.799 × height (cm) – 5.677 × age + 88.362.
+            <em>Female</em> = 9.247 × weight + 3.098 × height – 4.330 × age + 447.593.
+            TDEE = BMR × activity factor.
+          `,
+                    // Advanced
+                    advProtLbl: "Protein (g/kg)",
+                    advFatLbl: "Fat (g/kg)",
+                    selected: "Selected",
+                    advProt: "Protein",
+                    advFat: "Fat",
+                    advCarb: "Carbs",
+                    advNote: "Carbs = (Daily calories − Protein kcal − Fat kcal) ÷ 4. Protein = 4 kcal/g, Fat = 9 kcal/g, Carbs = 4 kcal/g.",
+                    advUses: "Advanced uses: daily calories = MSJ TDEE",
+                    // Comparison
+                    compareTitle: "Comparison: Basic vs Advanced (grams/day)",
+                    macro: "Macro",
+                    basic: "Basic",
+                    advanced: "Advanced",
+                    diff: "Δ"
+                },
+                bg: {
+                    tagline: "Хранене • Енергия • Фитнес",
+                    titleBrand: "Макроси и TDEE",
+                    titleCalc: "Калкулатор",
+                    subtitle: `Използва <strong>Mifflin–St Jeor</strong> и <strong>Harris–Benedict (1984)</strong> за BMR,
+            след което умножава по нивото на активност за изчисляване на <abbr title="Общ дневен енергоразход">TDEE</abbr>.`,
+                    yourDetails: "Вашите данни",
+                    gender: "Пол",
+                    female: "Жена",
+                    male: "Мъж",
+                    age: "Възраст",
+                    activity: "Ниво на активност",
+                    sedentary: "Заседнал ×1.2",
+                    light: "Леко активен ×1.375",
+                    moderate: "Умерено активен ×1.55",
+                    active: "Активен ×1.725",
+                    veryActive: "Много активен ×1.9",
+                    goal: "Цел",
+                    goalMaintain: "Поддържане",
+                    goalCut: "Дефицит",
+                    goalBulk: "Излишък",
+                    goalPct: "Процент за целта",
+                    goalDescMaintain: "Поддържане (без промяна)",
+                    goalDescCut: "Дефицит с {pct}%",
+                    goalDescBulk: "Излишък с {pct}%",
+                    goalHelp: "Дефицит/Излишък като % от TDEE",
+                    height: "Височина",
+                    weight: "Тегло",
+                    ftHelperNote: "Въведете футове и инчове (по избор). Ще ги преобразуваме в десетични футове за полето за височина.",
+                    reset: "Нулирай",
+                    copy: "Копирай резултатите",
+                    needMath: "Търсите формулите?",
+                    showFormulas: "Покажи формули",
+                    results: "Резултати",
+                    tabBasic: "Базов",
+                    tabAdvanced: "Разширен",
+                    msj: "Mifflin–St Jeor",
+                    hb: "Harris–Benedict '84",
+                    bmrUnit: "BMR (kcal/ден)",
+                    tdeeUnit: "TDEE (kcal/ден)",
+                    quickMacros: "Бързи макроси (TDEE)",
+                    protein: "Протеин",
+                    fat: "Мазнини",
+                    carbs: "Въглехидрати",
+                    gDay: "г/ден",
+                    carbsRest: "(останалото)",
+                    targets: "Целеви калории",
+                    maintain: "Поддържане",
+                    mildCut: "Лек дефицит (-10%)",
+                    mildBulk: "Лек излишък (+10%)",
+                    goalCals: "Калории за целта (по MSJ)",
+                    goalCalsShort: "Калории за целта",
+                    liveNote: "Стойностите се обновяват в движение. Единиците са напълно превключваеми (cm/ft, kg/lb).",
+                    actMap: { "1.2": "Заседнал", "1.375": "Леко активен", "1.55": "Умерено активен", "1.725": "Активен", "1.9": "Много активен" },
+                    formulaHTML: `
+            <strong>Mifflin–St Jeor</strong> — Базов метаболизъм (RMR).
+            <em>За жени</em>: BMR = 10 × тегло (кг) + 6.25 × височина (см) – 5 × възраст – 161.
+            <em>За мъже</em>: BMR = 10 × тегло + 6.25 × височина – 5 × възраст + 5.
+            За TDEE умножете BMR по коефициент на активност: 1.2 / 1.375 / 1.55 / 1.725 / 1.9.
+            <br/><br/>
+            <strong>Harris–Benedict (1984)</strong> — Базов метаболизъм (BMR).
+            <em>За мъже</em>: BMR = 13.397 × тегло (кг) + 4.799 × височина (см) – 5.677 × възраст + 88.362.
+            <em>За жени</em>: BMR = 9.247 × тегло + 3.098 × височина – 4.330 × възраст + 447.593.
+            TDEE = BMR × коефициент на активност.
+          `,
+                    // Advanced
+                    advProtLbl: "Протеин (г/кг)",
+                    advFatLbl: "Мазнини (г/кг)",
+                    selected: "Избрано",
+                    advProt: "Протеин",
+                    advFat: "Мазнини",
+                    advCarb: "Въглехидрати",
+                    advNote: "Въглехидрати = (Дневни калории − калории от протеин − калории от мазнини) ÷ 4. Протеин = 4 kcal/г, Мазнини = 9 kcal/г, Въглехидрати = 4 kcal/г.",
+                    advUses: "Разширеният използва: дневни калории = MSJ TDEE",
+                    // Comparison
+                    compareTitle: "Сравнение: Базов срещу Разширен (г/ден)",
+                    macro: "Макро",
+                    basic: "Базов",
+                    advanced: "Разширен",
+                    diff: "Δ"
+                }
+            };
+
+            // Elements
+            const els = {
+                langEN: document.getElementById('langEN'),
+                langBG: document.getElementById('langBG'),
+                themeToggle: document.getElementById('themeToggle'),
+
+                gender: document.querySelectorAll('input[name="gender"]'),
+                age: document.getElementById('age'),
+                activity: document.getElementById('activity'),
+
+                // Goal
+                goalRadios: document.querySelectorAll('input[name="goal"]'),
+                goalPctWrap: document.getElementById('goalPctWrap'),
+                goalPct: document.getElementById('goalPct'),
+                goalHelp: document.getElementById('goalHelp'),
+
+                height: document.getElementById('height'),
+                unitHeight: document.querySelectorAll('input[name="unitHeight"]'),
+                heightHelper: document.getElementById('heightHelper'),
+                ftHelperRow: document.getElementById('ftHelperRow'),
+                feetInput: document.getElementById('feetInput'),
+                inchInput: document.getElementById('inchInput'),
+
+                weight: document.getElementById('weight'),
+                unitWeight: document.querySelectorAll('input[name="unitWeight"]'),
+                weightHelper: document.getElementById('weightHelper'),
+
+                msjBmr: document.getElementById('msjBmr'),
+                msjTdee: document.getElementById('msjTdee'),
+                hbBmr: document.getElementById('hbBmr'),
+                hbTdee: document.getElementById('hbTdee'),
+
+                macroProtein: document.getElementById('macroProtein'),
+                macroFat: document.getElementById('macroFat'),
+                macroCarbs: document.getElementById('macroCarbs'),
+
+                maintainCal: document.getElementById('maintainCal'),
+                cut10: document.getElementById('cut10'),
+                bulk10: document.getElementById('bulk10'),
+
+                goalCalories: document.getElementById('goalCalories'),
+                goalDesc: document.getElementById('goalDesc'),
+
+                summaryPill: document.getElementById('summaryPill'),
+
+                resetBtn: document.getElementById('resetBtn'),
+                copyBtn: document.getElementById('copyBtn'),
+
+                formulaText: document.getElementById('formulaText'),
+
+                tabBasic: document.getElementById('tabBasic'),
+                tabAdvanced: document.getElementById('tabAdvanced'),
+                panelBasic: document.getElementById('panelBasic'),
+                panelAdvanced: document.getElementById('panelAdvanced'),
+
+                protMul: document.getElementById('protMul'),
+                fatMul: document.getElementById('fatMul'),
+                protMulVal: document.getElementById('protMulVal'),
+                fatMulVal: document.getElementById('fatMulVal'),
+                advProtG: document.getElementById('advProtG'),
+                advProtKcal: document.getElementById('advProtKcal'),
+                advFatG: document.getElementById('advFatG'),
+                advFatKcal: document.getElementById('advFatKcal'),
+                advCarbG: document.getElementById('advCarbG'),
+                advCarbKcal: document.getElementById('advCarbKcal'),
+                advUsesTdee: document.getElementById('advUsesTdee'),
+                advGoalCals: document.getElementById('advGoalCals'),
+
+                cmpProtBasic: document.getElementById('cmpProtBasic'),
+                cmpProtAdv: document.getElementById('cmpProtAdv'),
+                cmpProtDelta: document.getElementById('cmpProtDelta'),
+                cmpFatBasic: document.getElementById('cmpFatBasic'),
+                cmpFatAdv: document.getElementById('cmpFatAdv'),
+                cmpFatDelta: document.getElementById('cmpFatDelta'),
+                cmpCarbBasic: document.getElementById('cmpCarbBasic'),
+                cmpCarbAdv: document.getElementById('cmpCarbAdv'),
+                cmpCarbDelta: document.getElementById('cmpCarbDelta'),
+            };
+
+            // State (metric base)
+            let state = {
+                gender: 'female',
+                age: 30,
+                activity: 1.375,
+                heightCm: 170,
+                weightKg: 65,
+                unitH: 'cm',
+                unitW: 'kg',
+                lang: localStorage.getItem('calc_lang') || 'en',
+                theme: localStorage.getItem('calc_theme') || 'dark',
+                tab: 'basic',
+                goal: 'maintain',   // 'maintain' | 'cut' | 'bulk'
+                goalPct: 10,        // %
+                adv: { protMul: 1.8, fatMul: 0.9 }
+            };
+
+            // Conversions & helpers
+            const kgToLb = kg => kg / 0.45359237;
+            const lbToKg = lb => lb * 0.45359237;
+            const cmToFt = cm => cm / 30.48;
+            const ftToCm = ft => ft * 30.48;
+            const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+            const round = (n, d = 0) => Number.parseFloat(n).toFixed(d);
+
+            // Equations
+            const calcMSJ = (g, kg, cm, age) => g === 'female' ? (10 * kg + 6.25 * cm - 5 * age - 161) : (10 * kg + 6.25 * cm - 5 * age + 5);
+            const calcHB = (g, kg, cm, age) => g === 'male' ? (13.397 * kg + 4.799 * cm - 5.677 * age + 88.362) : (9.247 * kg + 3.098 * cm - 4.330 * age + 447.593);
+
+            // Apply language
+            function applyLanguage() {
+                const dict = i18n[state.lang];
+                document.querySelectorAll('[data-i18n]').forEach(n => {
+                    const k = n.getAttribute('data-i18n');
+                    if (dict[k] !== undefined) n.innerHTML = dict[k];
+                });
+                document.querySelectorAll('[data-i18n-opt]').forEach(opt => {
+                    const k = opt.getAttribute('data-i18n-opt');
+                    if (dict[k] !== undefined) opt.textContent = dict[k];
+                });
+
+                els.formulaText.innerHTML = dict.formulaHTML;
+                els.goalHelp.textContent = dict.goalHelp;
+
+                if (state.lang === 'en') {
+                    els.langEN.classList.add('active');
+                    els.langBG.classList.remove('active');
+                    document.documentElement.lang = 'en';
+                } else {
+                    els.langBG.classList.add('active');
+                    els.langEN.classList.remove('active');
+                    document.documentElement.lang = 'bg';
+                }
+
+                updateHelpers();
+                updateAll();
+            }
+
+            function applyTheme() {
+                document.documentElement.setAttribute('data-theme', state.theme);
+                els.themeToggle.textContent = state.theme === 'dark' ? '🌙' : '☀️';
+                els.themeToggle.setAttribute('aria-label', state.theme === 'dark' ? 'Dark theme' : 'Light theme');
+            }
+
+            function updateSummaryPill() {
+                const dict = i18n[state.lang], actMap = dict.actMap;
+                const gLabel = state.gender === 'female' ? dict.female : dict.male;
+                const hDisp = state.unitH === 'cm' ? `${round(els.height.value, 0)} cm` : `${round(els.height.value, 2)} ft`;
+                const wDisp = state.unitW === 'kg' ? `${round(els.weight.value, 1)} kg` : `${round(els.weight.value, 1)} lb`;
+                els.summaryPill.textContent = `${gLabel} • ${hDisp} • ${wDisp} • ${actMap[state.activity] || 'Custom'}`;
+            }
+
+            function updateHelpers() {
+                const tip = state.lang === 'bg' ? 'Съвет:' : 'Tip:';
+                if (state.unitH === 'cm') {
+                    els.heightHelper.textContent = `${tip} ${round(state.heightCm, 0)} cm`;
+                    els.ftHelperRow.style.display = 'none';
+                } else {
+                    els.heightHelper.textContent = `${tip} ${round(cmToFt(state.heightCm), 2)} ft`;
+                    els.ftHelperRow.style.display = '';
+                }
+                els.weightHelper.textContent = state.unitW === 'kg'
+                    ? `${tip} ${round(state.weightKg, 1)} kg`
+                    : `${tip} ${round(kgToLb(state.weightKg), 1)} lb`;
+            }
+
+            function goalAdjustedCalories(tdee) {
+                const pct = clamp(state.goalPct, 0, 100) / 100;
+                if (state.goal === 'cut') return tdee * (1 - pct);
+                if (state.goal === 'bulk') return tdee * (1 + pct);
+                return tdee;
+            }
+
+            function goalDescText() {
+                const dict = i18n[state.lang];
+                if (state.goal === 'maintain') return dict.goalDescMaintain;
+                if (state.goal === 'cut') return dict.goalDescCut.replace('{pct}', state.goalPct);
+                return dict.goalDescBulk.replace('{pct}', state.goalPct);
+            }
+
+            // BASIC
+            function updateBasic() {
+                const kg = state.weightKg, cm = state.heightCm, age = state.age, g = state.gender, act = state.activity;
+
+                const bmrMSJ = calcMSJ(g, kg, cm, age);
+                const bmrHB = calcHB(g, kg, cm, age);
+                const tdeeMSJ = bmrMSJ * act;
+                const tdeeHB = bmrHB * act;
+
+                els.msjBmr.textContent = Math.round(bmrMSJ);
+                els.hbBmr.textContent = Math.round(bmrHB);
+                els.msjTdee.textContent = Math.round(tdeeMSJ);
+                els.hbTdee.textContent = Math.round(tdeeHB);
+
+                const goalCals = goalAdjustedCalories(tdeeMSJ);
+                els.goalCalories.textContent = Math.round(goalCals);
+                els.goalDesc.textContent = goalDescText();
+
+                // Basic macros based on goal calories
+                const proteinG = 1.8 * kg;
+                const fatG = (0.25 * goalCals) / 9;
+                const carbsG = Math.max(0, (goalCals - (proteinG * 4 + fatG * 9)) / 4);
+
+                els.macroProtein.textContent = Math.round(proteinG);
+                els.macroFat.textContent = Math.round(fatG);
+                els.macroCarbs.textContent = Math.round(carbsG);
+
+                // Preview (from raw MSJ TDEE for context)
+                els.maintainCal.textContent = Math.round(tdeeMSJ);
+                els.cut10.textContent = Math.round(tdeeMSJ * 0.9);
+                els.bulk10.textContent = Math.round(tdeeMSJ * 1.1);
+
+                return { tdeeMSJ, goalCals, proteinG, fatG, carbsG };
+            }
+
+            // ADVANCED
+            function updateAdvanced(tdeeMSJ, goalCals) {
+                const kg = state.weightKg;
+                const protG = state.adv.protMul * kg;
+                const fatG = state.adv.fatMul * kg;
+                const protKcal = protG * 4;
+                const fatKcal = fatG * 9;
+                const carbKcal = Math.max(0, goalCals - protKcal - fatKcal);
+                const carbG = carbKcal / 4;
+
+                els.protMulVal.textContent = state.adv.protMul.toFixed(1);
+                els.fatMulVal.textContent = state.adv.fatMul.toFixed(1);
+
+                els.advProtG.textContent = Math.round(protG);
+                els.advProtKcal.textContent = Math.round(protKcal);
+                els.advFatG.textContent = Math.round(fatG);
+                els.advFatKcal.textContent = Math.round(fatKcal);
+                els.advCarbG.textContent = Math.round(carbG);
+                els.advCarbKcal.textContent = Math.round(carbKcal);
+
+                els.advUsesTdee.textContent = Math.round(tdeeMSJ);
+                els.advGoalCals.textContent = Math.round(goalCals);
+
+                return { proteinG: protG, fatG: fatG, carbsG: carbG };
+            }
+
+            // Comparison
+            function updateComparison(basic, adv) {
+                const r = (n) => Math.round(n);
+                els.cmpProtBasic.textContent = r(basic.proteinG);
+                els.cmpProtAdv.textContent = r(adv.proteinG);
+                els.cmpProtDelta.textContent = r(adv.proteinG - basic.proteinG);
+
+                els.cmpFatBasic.textContent = r(basic.fatG);
+                els.cmpFatAdv.textContent = r(adv.fatG);
+                els.cmpFatDelta.textContent = r(adv.fatG - basic.fatG);
+
+                els.cmpCarbBasic.textContent = r(basic.carbsG);
+                els.cmpCarbAdv.textContent = r(adv.carbsG);
+                els.cmpCarbDelta.textContent = r(adv.carbsG - basic.carbsG);
+            }
+
+            function updateAll() {
+                const basic = updateBasic();
+                const adv = updateAdvanced(basic.tdeeMSJ, basic.goalCals);
+                updateComparison(basic, adv);
+                updateSummaryPill();
+            }
+
+            // Bind events
+            function bind() {
+                // Language & theme
+                els.langEN.addEventListener('click', () => { state.lang = 'en'; localStorage.setItem('calc_lang', 'en'); applyLanguage(); });
+                els.langBG.addEventListener('click', () => { state.lang = 'bg'; localStorage.setItem('calc_lang', 'bg'); applyLanguage(); });
+                els.themeToggle.addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; localStorage.setItem('calc_theme', state.theme); applyTheme(); });
+
+                // Tabs
+                els.tabBasic.addEventListener('click', () => {
+                    state.tab = 'basic';
+                    els.tabBasic.classList.add('active');
+                    els.tabAdvanced.classList.remove('active');
+                    els.panelBasic.style.display = '';
+                    els.panelAdvanced.style.display = 'none';
+                });
+                els.tabAdvanced.addEventListener('click', () => {
+                    state.tab = 'advanced';
+                    els.tabAdvanced.classList.add('active');
+                    els.tabBasic.classList.remove('active');
+                    els.panelAdvanced.style.display = '';
+                    els.panelBasic.style.display = 'none';
+                });
+
+                // Goal
+                els.goalRadios.forEach(r => {
+                    r.addEventListener('change', () => {
+                        state.goal = document.querySelector('input[name="goal"]:checked').value;
+                        els.goalPctWrap.style.display = state.goal === 'maintain' ? 'none' : '';
+                        updateAll();
+                    });
+                });
+                els.goalPct.addEventListener('input', () => {
+                    state.goalPct = clamp(Number(els.goalPct.value) || 0, 1, 50);
+                    els.goalPct.value = state.goalPct;
+                    updateAll();
+                });
+
+                // Gender
+                document.querySelectorAll('input[name="gender"]').forEach(r => r.addEventListener('change', () => {
+                    state.gender = document.querySelector('input[name="gender"]:checked').value;
+                    updateAll();
+                }));
+
+                // Age & activity
+                els.age.addEventListener('input', () => { state.age = clamp(Number(els.age.value) || 0, 10, 100); updateAll(); });
+                els.activity.addEventListener('change', () => { state.activity = Number(els.activity.value); updateAll(); });
+
+                // Height
+                els.height.addEventListener('input', () => {
+                    const v = Number(els.height.value);
+                    if (!isFinite(v)) return;
+                    state.heightCm = state.unitH === 'cm' ? clamp(v, 50, 260) : clamp(ftToCm(v), 50, 260);
+                    updateHelpers(); updateAll();
+                });
+                els.unitHeight.forEach(r => r.addEventListener('change', () => {
+                    const u = document.querySelector('input[name="unitHeight"]:checked').value;
+                    if (u === state.unitH) return;
+                    els.height.value = u === 'cm' ? round(state.heightCm, 1) : round(cmToFt(state.heightCm), 2);
+                    state.unitH = u; updateHelpers(); updateAll();
+                }));
+                const syncFtHelper = () => {
+                    const ft = Number(els.feetInput.value) || 0;
+                    const inch = Number(els.inchInput.value) || 0;
+                    const decFt = ft + inch / 12;
+                    if (state.unitH === 'ft') { els.height.value = round(decFt, 2); els.height.dispatchEvent(new Event('input')); }
+                };
+                els.feetInput.addEventListener('input', syncFtHelper);
+                els.inchInput.addEventListener('input', syncFtHelper);
+
+                // Weight
+                els.weight.addEventListener('input', () => {
+                    const v = Number(els.weight.value);
+                    if (!isFinite(v)) return;
+                    state.weightKg = state.unitW === 'kg' ? clamp(v, 30, 300) : clamp(lbToKg(v), 30, 300);
+                    updateHelpers(); updateAll();
+                });
+                els.unitWeight.forEach(r => r.addEventListener('change', () => {
+                    const u = document.querySelector('input[name="unitWeight"]:checked').value;
+                    if (u === state.unitW) return;
+                    els.weight.value = u === 'kg' ? round(state.weightKg, 1) : round(kgToLb(state.weightKg), 1);
+                    state.unitW = u; updateHelpers(); updateAll();
+                }));
+
+                // Advanced sliders
+                els.protMul.addEventListener('input', () => { state.adv.protMul = Number(els.protMul.value); updateAll(); });
+                els.fatMul.addEventListener('input', () => { state.adv.fatMul = Number(els.fatMul.value); updateAll(); });
+
+                // Reset
+                els.resetBtn.addEventListener('click', () => {
+                    state = {
+                        ...state, // keep lang/theme/tab
+                        gender: 'female', age: 30, activity: 1.375,
+                        heightCm: 170, weightKg: 65, unitH: 'cm', unitW: 'kg',
+                        goal: 'maintain', goalPct: 10,
+                        adv: { protMul: 1.8, fatMul: 0.9 }
+                    };
+                    document.getElementById('gender_f').checked = true;
+                    els.age.value = 30; els.activity.value = 1.375;
+                    document.getElementById('h_cm').checked = true; document.getElementById('w_kg').checked = true;
+                    els.height.value = 170; els.weight.value = 65;
+                    els.feetInput.value = ''; els.inchInput.value = '';
+                    document.getElementById('g_maintain').checked = true;
+                    els.goalPct.value = 10; els.goalPctWrap.style.display = 'none';
+                    els.protMul.value = 1.8; els.fatMul.value = 0.9;
+
+                    applyLanguage(); applyTheme(); updateHelpers(); updateAll();
+                });
+
+                // Copy
+                els.copyBtn.addEventListener('click', async () => {
+                    const dict = i18n[state.lang];
+                    const gtxt = state.goal === 'maintain' ? dict.goalMaintain : (state.goal === 'cut' ? dict.goalCut : dict.goalBulk);
+                    const basic = updateBasic(); // ensures latest
+                    const adv = updateAdvanced(basic.tdeeMSJ, basic.goalCals);
+                    const text =
+                        `${dict.titleBrand} ${dict.titleCalc}
+
+${dict.gender}: ${state.gender === 'female' ? dict.female : dict.male}
+${dict.age}: ${state.age}
+${dict.height}: ${round(state.heightCm, 1)} cm
+${dict.weight}: ${round(state.weightKg, 1)} kg
+${dict.activity}: x${state.activity}
+${dict.goal}: ${gtxt}${state.goal === 'maintain' ? '' : ` (${state.goalPct}%)`}
+
+${dict.msj}:
+- ${dict.bmrUnit.split(' ')[0]}: ${els.msjBmr.textContent} kcal
+- ${dict.tdeeUnit.split(' ')[0]}: ${els.msjTdee.textContent} kcal
+
+${dict.hb}:
+- ${dict.bmrUnit.split(' ')[0]}: ${els.hbBmr.textContent} kcal
+- ${dict.tdeeUnit.split(' ')[0]}: ${els.hbTdee.textContent} kcal
+
+${dict.goalCals}: ${Math.round(basic.goalCals)} kcal
+
+${dict.quickMacros} (Basic):
+- ${dict.protein}: ${Math.round(basic.proteinG)} ${dict.gDay}
+- ${dict.fat}: ${Math.round(basic.fatG)} ${dict.gDay}
+- ${dict.carbs}: ${Math.round(basic.carbsG)} ${dict.gDay}
+
+Advanced (g/kg; ${dict.goalCalsShort}: ${Math.round(basic.goalCals)}):
+- ${dict.protein}: ${Math.round(adv.proteinG)} ${dict.gDay}
+- ${dict.fat}: ${Math.round(adv.fatG)} ${dict.gDay}
+- ${dict.carbs}: ${Math.round(adv.carbsG)} ${dict.gDay}
+`;
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        els.copyBtn.textContent = state.lang === 'bg' ? 'Копирано!' : 'Copied!';
+                        setTimeout(() => els.copyBtn.textContent = i18n[state.lang].copy, 1200);
+                    } catch {
+                        const ta = document.createElement('textarea');
+                        ta.value = text;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        els.copyBtn.textContent = state.lang === 'bg' ? 'Копирано!' : 'Copied!';
+                        setTimeout(() => els.copyBtn.textContent = i18n[state.lang].copy, 1200);
+                    }
+                });
+            }
+
+            // Init
+            function init() {
+                els.height.value = 170; els.weight.value = 65; els.age.value = 30;
+                document.getElementById('h_cm').checked = true; document.getElementById('w_kg').checked = true;
+                document.getElementById('gender_f').checked = true;
+                document.getElementById('g_maintain').checked = true;
+                els.goalPct.value = 10; els.goalPctWrap.style.display = 'none';
+                els.protMul.value = state.adv.protMul; els.fatMul.value = state.adv.fatMul;
+
+                applyTheme(); applyLanguage(); bind();
+                updateHelpers(); updateAll();
+            }
+
+            init();
+        })();
+    </script>
+</body>
+
+</html>
